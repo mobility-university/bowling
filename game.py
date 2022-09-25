@@ -12,8 +12,6 @@ def evaluate_game(game):
     0
     >>> evaluate_game('1-|--|--|--|--|--|--|--|--|--||')
     1
-    >>> 'foobarbaz' # doctest: +ELLIPSIS
-    'foo...baz'
     >>> try:
     ...     evaluate_game('77|--|--|--|--|--|--|--|--|--||')
     ...     assert False
@@ -111,13 +109,13 @@ def evaluate_frame(number, frame):
     if frame == 'X':
         yield Throw(frame=number, strike=True, spare=False, points=10)
         return
-    points = 0
     if number >= 11:
         assert frame == ''
         yield Throw(frame=number, strike=False, spare=False, points=0)
         return
     assert len(frame) == 2
 
+    points = 0
     for throw in frame:
         if throw == '-':
             yield Throw(frame=number, strike=False, spare=False, points=0)
