@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from collections import namedtuple
-from itertools import islice
+from itertools import islice, tee
 
 Throw = namedtuple("Throw", "frame strike spare points")
 
@@ -9,13 +9,11 @@ def evaluate_game(game):
     """
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|--||") #Correct Empty Input
     0
-    >>> evaluate_game("1-|-5|12|--|9-|2-|--|3-|--|16||") #Normal Game
-    30
-    >>> evaluate_game("-/|--|--|--|--|--|--|--|--|--||") #Spare
+    >>> evaluate_game("1/|--|--|--|--|--|--|--|--|--||") #Spare
     10
     >>> evaluate_game("X|--|--|--|--|--|--|--|--|--||") #Strike
     10
-    >>> evaluate_game("-/|22|--|--|--|--|--|--|--|--||") #Spare (10 + 4 + 2)
+    >>> evaluate_game("1/|22|--|--|--|--|--|--|--|--||") #Spare (10 + 4 + 2)
     16
     >>> evaluate_game("X|22|-2|--|--|--|--|--|--|--||") #Strike (10 + (2+2) * 2 + 2)
     20
@@ -23,91 +21,70 @@ def evaluate_game(game):
     34
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|5/||7") #Bonus Throw
     17
-    >>> evaluate_game("3/|4/|--|--|--|--|--|--|--|--||") #Two Spares normal game
-    24
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||72") #Valid Bonus Frames
     19
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|2/||7") #Valid Bonus Frames
     17
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||XX")
     30
+    >>> evaluate_game("X|X|X|X|X|X|X|X|X|X||XX") # perfect game
+    300
     >>> evaluate_game("--|--|--|--|--|--|--|--|X|X||XX")
     60
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||X5")
     25
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||1/")
     20
-    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||12")
-    13
-    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||7/")
-    20
-    >>> evaluate_game("--|--|--|--|--|--|--|--|--|1/||2")
-    12
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|X||3")
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|X||")
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|2/||71") #Valid Bonus Frames
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|-4|--|--|--|--|--||32") #InValid Bonus Frames
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|--|") #Only one pipe in the end
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("XX|--|--|--|--|--|--|--|--|--||") #Two strikes in one throw are not possible
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("123|--|--|--|--|--|--|--|--|--||") #Three throws in one frame
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|X||123") #Three throws in bonus frame (bonus frame is valid)
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|--|--|--|--|--|--|--|--|X||1")
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--||--|--|--|--|--|--|--|--||--|") #Two pipes before the end
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("/-|--|--|--|--|--|--|--|--|--|--||") #Spare at the start of a frame
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|55|--|--|--|--|--|--|--|--||") #Sum of frame equals ten
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|57|--|--|--|--|--|--|--|--||") #Sum of frame greater than ten
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     evaluate_game("--|1|--|--|--|--|--|--|--|--||") #Sum of frame greater than ten
-    ... except Exception:
-    ...     pass
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||3")
+    Traceback (most recent call last):
+        ...
+    AssertionError: throw before last throw cannot be strike
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||")
+    Traceback (most recent call last):
+        ...
+    AssertionError: last throw cannot be a strike
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|2/||71")
+    Traceback (most recent call last):
+        ...
+    AssertionError: a strike in the last regular frame provides two bonus throws
+    >>> evaluate_game("--|--|--|--|-4|--|--|--|--|--||32")
+    Traceback (most recent call last):
+        ...
+    AssertionError: a strike in the last regular frame provides two bonus throws
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|--|")
+    Traceback (most recent call last):
+        ...
+    AssertionError: need to have 10 frames + bonus frame
+    >>> evaluate_game("XX|--|--|--|--|--|--|--|--|--||")
+    Traceback (most recent call last):
+        ...
+    AssertionError: two strikes cannot be in the same frame, except in bonus frame
+    >>> evaluate_game("123|--|--|--|--|--|--|--|--|--||")
+    Traceback (most recent call last):
+        ...
+    AssertionError: frame need to have length 2, if no strike or bonus frame
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||123")
+    Traceback (most recent call last):
+        ...
+    AssertionError: a strike in the last regular frame provides two bonus throws
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||X1")
+    21
+    >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||1")
+    Traceback (most recent call last):
+        ...
+    AssertionError: throw before last throw cannot be strike
+    >>> evaluate_game("--||--|--|--|--|--|--|--|--||--|")
+    Traceback (most recent call last):
+        ...
+    AssertionError: need to have 10 frames + bonus frame
+    >>> evaluate_game("--|55|--|--|--|--|--|--|--|--||")
+    Traceback (most recent call last):
+        ...
+    AssertionError: cannot score 10 or higher, without strike/spare
+    >>> evaluate_game("--|1|--|--|--|--|--|--|--|--||")
+    Traceback (most recent call last):
+        ...
+    AssertionError: frame need to have length 2, if no strike or bonus frame
     """
     score = 0
 
@@ -121,9 +98,11 @@ def evaluate_game(game):
         if throw_before_last_throw and throw_before_last_throw.strike:
             score += throw.points
 
-    assert not throw.strike
-    assert not last_throw.strike
-    assert last_throw.frame != 12 or throw.frame != 12 or throw_before_last_throw.strike
+    assert not throw.strike, "last throw cannot be a strike"
+    assert not last_throw.strike, "throw before last throw cannot be strike"
+    assert (
+        last_throw.frame != 12 or throw.frame != 12 or throw_before_last_throw.strike
+    ), "a strike in the last regular frame provides two bonus throws"
     assert last_throw.frame >= 10 or last_throw.spare
 
     return score
@@ -134,7 +113,7 @@ def iter_over_throws(frames, window_size):
     >>> len(list(iter_over_throws(['--'] * 10 + ['', ''], window_size=3)))
     20
     """
-    assert len(frames) == 12
+    assert len(frames) == 12, "need to have 10 frames + bonus frame"
 
     def get_throws():
         for i in range(1, window_size):
@@ -142,7 +121,7 @@ def iter_over_throws(frames, window_size):
         for i, frame in enumerate(frames, 1):
             yield from evaluate_frame(number=i, frame=frame)
 
-    yield from window(list(get_throws()), size=window_size)
+    yield from window(get_throws(), size=window_size)
 
 
 def window(iterable, size):
@@ -150,83 +129,61 @@ def window(iterable, size):
     >>> list(window([None, None, 1,2,3], size=3))
     [(None, None, 1), (None, 1, 2), (1, 2, 3)]
     """
-    return zip(*[islice(iterable, s, None) for s in range(size)])
+    return zip(
+        *[
+            islice(iterator, idx, None)
+            for idx, iterator in enumerate(tee(iterable, size))
+        ]
+    )
 
 
 def evaluate_frame(number, frame):
     """
     >>> list(evaluate_frame(number=1, frame='X'))
     [Throw(frame=1, strike=True, spare=False, points=10)]
-
     >>> list(evaluate_frame(number=1, frame='12'))
     [Throw(frame=1, strike=False, spare=False, points=1), Throw(frame=1, strike=False, spare=False, points=2)]
-
-    >>> list(evaluate_frame(number=1, frame='3/'))
-    [Throw(frame=1, strike=False, spare=False, points=3), Throw(frame=1, strike=False, spare=True, points=7)]
-
+    >>> list(evaluate_frame(number=1, frame='9/'))
+    [Throw(frame=1, strike=False, spare=False, points=9), Throw(frame=1, strike=False, spare=True, points=1)]
     >>> list(evaluate_frame(number=12, frame='2'))
     [Throw(frame=12, strike=False, spare=False, points=2)]
-
     >>> list(evaluate_frame(number=11, frame=''))
     []
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='55'))
-    ...     assert False
-    ... except AssertionError:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='123'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='1'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='/1'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='XX'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='//'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=11, frame='23'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=11, frame='23'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    # >>> list(evaluate_frame(number=1, frame='XX'))
-    # Traceback (most recent call last):
-    #     ...
-    # Exception: Two Strikes/Spares can't be in the same frame!
+    >>> list(evaluate_frame(number=1, frame='55'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: cannot score 10 or higher, without strike/spare
+    >>> list(evaluate_frame(number=1, frame='1'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: frame need to have length 2, if no strike or bonus frame
+    >>> list(evaluate_frame(number=1, frame='-/'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: spare cannot be the first throw in a frame
+    >>> list(evaluate_frame(number=1, frame='//'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: spare cannot be the first throw in a frame
+    >>> list(evaluate_frame(number=11, frame='23'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: bonus frame needs to be empty
+    >>> list(evaluate_frame(number=1, frame='XX'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: two strikes cannot be in the same frame, except in bonus frame
+    >>> list(evaluate_frame(number=1, frame='1Y'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: Y is an invalid throw
     """
-    assert frame != "XX" or number == 12
+    assert (
+        frame != "XX" or number == 12
+    ), "two strikes cannot be in the same frame, except in bonus frame"
 
     if number == 11:
-        assert frame == ""
+        assert frame == "", "bonus frame needs to be empty"
         return
 
     if frame == "X":
@@ -235,25 +192,23 @@ def evaluate_frame(number, frame):
 
     points = 0
 
-    for idx, hit in enumerate(frame):
-        if hit == "-":
+    for throw in frame:
+        if throw == "-":
             yield Throw(frame=number, strike=False, spare=False, points=0)
-
-        elif "1" <= hit <= "9":
-            points += int(hit)
-            assert points < 10
-            yield Throw(frame=number, strike=False, spare=False, points=int(hit))
-
-        elif hit == "/":
+        elif "1" <= throw <= "9":
+            points += int(throw)
+            assert points < 10, "cannot score 10 or higher, without strike/spare"
+            yield Throw(frame=number, strike=False, spare=False, points=int(throw))
+        elif throw == "/":
+            assert points > 0, "spare cannot be the first throw in a frame"
             yield Throw(frame=number, strike=False, spare=True, points=10 - points)
-
         else:
-            assert hit == "X"
+            assert throw == "X", f"{throw} is an invalid throw"
             yield Throw(frame=number, strike=False, spare=False, points=10)
 
-        assert idx != 0 or hit != "/"
-
-    assert len(frame) == 2 or number == 12
+    assert (
+        len(frame) == 2 or number == 12
+    ), "frame need to have length 2, if no strike or bonus frame"
 
 
 if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover

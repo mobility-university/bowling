@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
 
+rm -f .coverage
+rm -f .mutmut-cache
+
 coverage run --source=. -m doctest game.py
-mutmut run --use-coverage; mutmut show game.py
+mutmut run --use-coverage --no-progress; mutmut show game.py
