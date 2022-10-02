@@ -1,6 +1,6 @@
 [![ci](https://github.com/mobility-university/bowling/actions/workflows/ci.yml/badge.svg)](https://github.com/mobility-university/bowling/actions/workflows/ci.yml)
 ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
-![coverage](https://raw.githubusercontent.com/mobility-university/bowling/badges/.github/coverage.svg)
+![coverage](https://raw.githubusercontent.com/mobility-university/bowling/.github/coverage.svg)
 
 
 # Bowling
