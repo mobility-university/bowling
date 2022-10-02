@@ -1,4 +1,5 @@
 [![ci](https://github.com/mobility-university/bowling/actions/workflows/ci.yml/badge.svg)](https://github.com/mobility-university/bowling/actions/workflows/ci.yml)
+![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 
 # Bowling
 
