@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from collections import namedtuple
-from itertools import islice
+from itertools import islice, tee
 
 Throw = namedtuple("Throw", "frame strike spare points")
 
@@ -140,7 +140,7 @@ def iter_over_throws(frames, window_size):
         for i, frame in enumerate(frames, 1):
             yield from evaluate_frame(number=i, frame=frame)
 
-    yield from window(list(get_throws()), size=window_size)
+    yield from window(get_throws(), size=window_size)
 
 
 def window(iterable, size):
@@ -148,7 +148,9 @@ def window(iterable, size):
     >>> list(window([None, None, 1,2,3], size=3))
     [(None, None, 1), (None, 1, 2), (1, 2, 3)]
     """
-    return zip(*[islice(iterable, s, None) for s in range(size)])
+    iterators = tee(iterable, size)
+
+    return zip(*[islice(iterator, idx, None) for idx, iterator in enumerate(iterators)])
 
 
 def evaluate_frame(number, frame):
@@ -192,10 +194,12 @@ def evaluate_frame(number, frame):
         ...
     AssertionError: Y is an invalid throw
     """
-    assert frame != "XX" or number == 12, 'two strikes cannot be in the same frame, except in bonus frame'
+    assert (
+        frame != "XX" or number == 12
+    ), "two strikes cannot be in the same frame, except in bonus frame"
 
     if number == 11:
-        assert frame == "", 'bonus frame needs to be empty'
+        assert frame == "", "bonus frame needs to be empty"
         return
 
     if frame == "X":
@@ -209,16 +213,18 @@ def evaluate_frame(number, frame):
             yield Throw(frame=number, strike=False, spare=False, points=0)
         elif "1" <= hit <= "9":
             points += int(hit)
-            assert points < 10, 'cannot score 10 or higher, without strike/spare'
+            assert points < 10, "cannot score 10 or higher, without strike/spare"
             yield Throw(frame=number, strike=False, spare=False, points=int(hit))
         elif hit == "/":
-            assert points > 0, 'spare cannot be the first throw in a frame'
+            assert points > 0, "spare cannot be the first throw in a frame"
             yield Throw(frame=number, strike=False, spare=True, points=10 - points)
         else:
-            assert hit == "X", f'{hit} is an invalid throw'
+            assert hit == "X", f"{hit} is an invalid throw"
             yield Throw(frame=number, strike=False, spare=False, points=10)
 
-    assert len(frame) == 2 or number == 12, 'frame need to have length 2, if no strike or bonus frame'
+    assert (
+        len(frame) == 2 or number == 12
+    ), "frame need to have length 2, if no strike or bonus frame"
 
 
 if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
