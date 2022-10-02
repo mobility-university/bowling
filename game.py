@@ -11,11 +11,11 @@ def evaluate_game(game):
     0
     >>> evaluate_game("1-|-5|12|--|9-|2-|--|3-|--|16||") #Normal Game
     30
-    >>> evaluate_game("-/|--|--|--|--|--|--|--|--|--||") #Spare
+    >>> evaluate_game("1/|--|--|--|--|--|--|--|--|--||") #Spare
     10
     >>> evaluate_game("X|--|--|--|--|--|--|--|--|--||") #Strike
     10
-    >>> evaluate_game("-/|22|--|--|--|--|--|--|--|--||") #Spare (10 + 4 + 2)
+    >>> evaluate_game("1/|22|--|--|--|--|--|--|--|--||") #Spare (10 + 4 + 2)
     16
     >>> evaluate_game("X|22|-2|--|--|--|--|--|--|--||") #Strike (10 + (2+2) * 2 + 2)
     20
@@ -23,8 +23,6 @@ def evaluate_game(game):
     34
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|5/||7") #Bonus Throw
     17
-    >>> evaluate_game("3/|4/|--|--|--|--|--|--|--|--||") #Two Spares normal game
-    24
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|X||72") #Valid Bonus Frames
     19
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|2/||7") #Valid Bonus Frames
@@ -181,19 +179,21 @@ def evaluate_frame(number, frame):
     ...     assert False
     ... except Exception:
     ...     pass
-
     >>> try:
     ...     list(evaluate_frame(number=1, frame='1'))
     ...     assert False
     ... except Exception:
     ...     pass
-
     >>> try:
     ...     list(evaluate_frame(number=1, frame='/1'))
     ...     assert False
     ... except Exception:
     ...     pass
-
+    >>> try:
+    ...     list(evaluate_frame(number=1, frame='-/'))
+    ...     assert False
+    ... except Exception:
+    ...     pass
     >>> try:
     ...     list(evaluate_frame(number=1, frame='XX'))
     ...     assert False
@@ -235,7 +235,7 @@ def evaluate_frame(number, frame):
 
     points = 0
 
-    for idx, hit in enumerate(frame):
+    for hit in frame:
         if hit == "-":
             yield Throw(frame=number, strike=False, spare=False, points=0)
 
@@ -245,13 +245,12 @@ def evaluate_frame(number, frame):
             yield Throw(frame=number, strike=False, spare=False, points=int(hit))
 
         elif hit == "/":
+            assert points > 0
             yield Throw(frame=number, strike=False, spare=True, points=10 - points)
 
         else:
             assert hit == "X"
             yield Throw(frame=number, strike=False, spare=False, points=10)
-
-        assert idx != 0 or hit != "/"
 
     assert len(frame) == 2 or number == 12
 
