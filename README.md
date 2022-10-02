@@ -1,3 +1,5 @@
+[![ci](https://github.com/mobility-university/bowling/actions/workflows/ci.yml/badge.svg)](https://github.com/mobility-university/bowling/actions/workflows/ci.yml)
+
 # Bowling
 
 ## Motivation
