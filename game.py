@@ -130,6 +130,10 @@ def evaluate_game(game):
 
 
 def iter_over_throws(frames, window_size):
+    """
+    >>> len(list(iter_over_throws(['--'] * 10 + ['', ''], window_size=3)))
+    20
+    """
     assert len(frames) == 12
 
     def get_throws():
@@ -244,7 +248,7 @@ def evaluate_frame(number, frame):
             yield Throw(frame=number, strike=False, spare=True, points=10 - points)
 
         else:
-            assert hit == 'X'
+            assert hit == "X"
             yield Throw(frame=number, strike=False, spare=False, points=10)
 
         assert idx != 0 or hit != "/"
@@ -252,7 +256,7 @@ def evaluate_frame(number, frame):
     assert len(frame) == 2 or number == 12
 
 
-if __name__ == "__main__":  # pragma: no mutate
+if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
     from sys import stdin
 
     for line in stdin:
