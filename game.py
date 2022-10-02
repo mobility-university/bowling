@@ -148,9 +148,12 @@ def window(iterable, size):
     >>> list(window([None, None, 1,2,3], size=3))
     [(None, None, 1), (None, 1, 2), (1, 2, 3)]
     """
-    iterators = tee(iterable, size)
-
-    return zip(*[islice(iterator, idx, None) for idx, iterator in enumerate(iterators)])
+    return zip(
+        *[
+            islice(iterator, idx, None)
+            for idx, iterator in enumerate(tee(iterable, size))
+        ]
+    )
 
 
 def evaluate_frame(number, frame):
