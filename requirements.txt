@@ -6,3 +6,4 @@ flake8-newspaper-style==0.3.0
 flake8==3.9.2
 mutmut==2.4.1
 pylint==2.11.1
+pytest==7.1.3
