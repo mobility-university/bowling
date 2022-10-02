@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+coverage run --source=. -m doctest game.py
+mutmut run --use-coverage; mutmut show game.py
