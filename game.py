@@ -145,8 +145,8 @@ def evaluate_frame(number, frame):
     [Throw(frame=1, strike=True, spare=False, points=10)]
     >>> list(evaluate_frame(number=1, frame='12'))
     [Throw(frame=1, strike=False, spare=False, points=1), Throw(frame=1, strike=False, spare=False, points=2)]
-    >>> list(evaluate_frame(number=1, frame='3/'))
-    [Throw(frame=1, strike=False, spare=False, points=3), Throw(frame=1, strike=False, spare=True, points=7)]
+    >>> list(evaluate_frame(number=1, frame='9/'))
+    [Throw(frame=1, strike=False, spare=False, points=9), Throw(frame=1, strike=False, spare=True, points=1)]
     >>> list(evaluate_frame(number=12, frame='2'))
     [Throw(frame=12, strike=False, spare=False, points=2)]
     >>> list(evaluate_frame(number=11, frame=''))
