@@ -155,78 +155,47 @@ def evaluate_frame(number, frame):
     """
     >>> list(evaluate_frame(number=1, frame='X'))
     [Throw(frame=1, strike=True, spare=False, points=10)]
-
     >>> list(evaluate_frame(number=1, frame='12'))
     [Throw(frame=1, strike=False, spare=False, points=1), Throw(frame=1, strike=False, spare=False, points=2)]
-
     >>> list(evaluate_frame(number=1, frame='3/'))
     [Throw(frame=1, strike=False, spare=False, points=3), Throw(frame=1, strike=False, spare=True, points=7)]
-
     >>> list(evaluate_frame(number=12, frame='2'))
     [Throw(frame=12, strike=False, spare=False, points=2)]
-
     >>> list(evaluate_frame(number=11, frame=''))
     []
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='55'))
-    ...     assert False
-    ... except AssertionError:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='123'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='1'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='/1'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='-/'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='XX'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=1, frame='//'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=11, frame='23'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    >>> try:
-    ...     list(evaluate_frame(number=11, frame='23'))
-    ...     assert False
-    ... except Exception:
-    ...     pass
-
-    # >>> list(evaluate_frame(number=1, frame='XX'))
-    # Traceback (most recent call last):
-    #     ...
-    # Exception: Two Strikes/Spares can't be in the same frame!
+    >>> list(evaluate_frame(number=1, frame='55'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: cannot score 10 or higher, without strike/spare
+    >>> list(evaluate_frame(number=1, frame='1'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: frame need to have length 2, if no strike or bonus frame
+    >>> list(evaluate_frame(number=1, frame='-/'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: spare cannot be the first throw in a frame
+    >>> list(evaluate_frame(number=1, frame='//'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: spare cannot be the first throw in a frame
+    >>> list(evaluate_frame(number=11, frame='23'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: bonus frame needs to be empty
+    >>> list(evaluate_frame(number=1, frame='XX'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: two strikes cannot be in the same frame, except in bonus frame
+    >>> list(evaluate_frame(number=1, frame='1Y'))
+    Traceback (most recent call last):
+        ...
+    AssertionError: Y is an invalid throw
     """
-    assert frame != "XX" or number == 12
+    assert frame != "XX" or number == 12, 'two strikes cannot be in the same frame, except in bonus frame'
 
     if number == 11:
-        assert frame == ""
+        assert frame == "", 'bonus frame needs to be empty'
         return
 
     if frame == "X":
@@ -238,21 +207,18 @@ def evaluate_frame(number, frame):
     for hit in frame:
         if hit == "-":
             yield Throw(frame=number, strike=False, spare=False, points=0)
-
         elif "1" <= hit <= "9":
             points += int(hit)
-            assert points < 10
+            assert points < 10, 'cannot score 10 or higher, without strike/spare'
             yield Throw(frame=number, strike=False, spare=False, points=int(hit))
-
         elif hit == "/":
-            assert points > 0
+            assert points > 0, 'spare cannot be the first throw in a frame'
             yield Throw(frame=number, strike=False, spare=True, points=10 - points)
-
         else:
-            assert hit == "X"
+            assert hit == "X", f'{hit} is an invalid throw'
             yield Throw(frame=number, strike=False, spare=False, points=10)
 
-    assert len(frame) == 2 or number == 12
+    assert len(frame) == 2 or number == 12, 'frame need to have length 2, if no strike or bonus frame'
 
 
 if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
