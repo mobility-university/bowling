@@ -116,14 +116,12 @@ def iter_over_throws(frames, window_size):
     assert len(frames) == 12, "need to have 10 frames + bonus frame"
 
     yield from window(
-        chain.from_iterable(
-            [
-                [None] * (window_size - 1),
-                *(
-                    evaluate_frame(number=i, frame=frame)
-                    for i, frame in enumerate(frames, 1)
-                ),
-            ]
+        chain(
+            [None] * (window_size - 1),
+            *(
+                evaluate_frame(number=i, frame=frame)
+                for i, frame in enumerate(frames, 1)
+            ),
         ),
         size=window_size,
     )
