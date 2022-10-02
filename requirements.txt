@@ -1,9 +1,8 @@
 black==21.7b0
+click==7.1.2
 coverage==6.4
-pylint==2.11.1
-flake8==3.9.2
 flake8-cognitive-complexity==0.1.0
 flake8-newspaper-style==0.3.0
+flake8==3.9.2
 mutmut==2.4.1
-
-
+pylint==2.11.1
