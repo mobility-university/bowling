@@ -9,8 +9,6 @@ def evaluate_game(game):
     """
     >>> evaluate_game("--|--|--|--|--|--|--|--|--|--||") #Correct Empty Input
     0
-    >>> evaluate_game("1-|-5|12|--|9-|2-|--|3-|--|16||") #Normal Game
-    30
     >>> evaluate_game("1/|--|--|--|--|--|--|--|--|--||") #Spare
     10
     >>> evaluate_game("X|--|--|--|--|--|--|--|--|--||") #Strike
