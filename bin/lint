@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+flake8 --ignore E501,CCR001
+pylint -d line-too-long,missing-module-docstring,undefined-loop-variable,mi game.py
