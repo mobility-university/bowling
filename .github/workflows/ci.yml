@@ -60,7 +60,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Lint
-      run: ./lint
+      run: ./bin/lint
   format:
     name: Format
     runs-on: ubuntu-latest
@@ -75,4 +75,4 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Format
-      run: ./format
+      run: ./bin/format
