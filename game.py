@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from collections import namedtuple
-from itertools import islice, tee
+from itertools import chain, islice, tee
 
 Throw = namedtuple("Throw", "frame strike spare points")
 
@@ -115,13 +115,18 @@ def iter_over_throws(frames, window_size):
     """
     assert len(frames) == 12, "need to have 10 frames + bonus frame"
 
-    def get_throws():
-        for i in range(1, window_size):
-            yield None
-        for i, frame in enumerate(frames, 1):
-            yield from evaluate_frame(number=i, frame=frame)
-
-    yield from window(get_throws(), size=window_size)
+    yield from window(
+        chain.from_iterable(
+            [
+                [None] * (window_size - 1),
+                *(
+                    evaluate_frame(number=i, frame=frame)
+                    for i, frame in enumerate(frames, 1)
+                ),
+            ]
+        ),
+        size=window_size,
+    )
 
 
 def window(iterable, size):
