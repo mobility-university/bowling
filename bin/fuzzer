@@ -1,0 +1,54 @@
+#!/bin/bash
+set -e
+
+mkdir -p build && cat > build/fuzz.py << EOF
+#!/usr/bin/env python3
+import atheris
+import sys
+
+if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
+
+    with atheris.instrument_imports():
+        import game
+
+        def modified_game(bb):
+            #fdp = 
+            original = atheris.FuzzedDataProvider(bb).ConsumeUnicode(40)
+            original = atheris.FuzzedDataProvider(bb).ConsumeBytes(40).decode('ISO 8859-1')
+            #original = atheris.FuzzedDataProvider(bb).ConsumeString(40)
+
+            try:
+                return game.evaluate_game(
+                    game=original
+                    #game=bb.decode('utf-8')
+                )
+            except UnicodeDecodeError:
+                assert False
+            except AssertionError as e:
+                a, *_ = e.args
+                if a in (
+                            'need to have 10 frames + bonus frame',
+                            'frame need to have length 2, if no strike or bonus frame',
+                            'spare cannot be the first throw in a frame',
+                            'cannot score 10 or higher, without strike/spare',
+                            'two strikes cannot be in the same frame, except in bonus frame',
+                            'bonus frame needs to be empty',
+                            'last throw cannot be a strike',
+                            'a strike in the last regular frame provides two bonus throws',
+                            'throw before last throw cannot be strike',
+                            ):
+                    return
+                if 'is an invalid throw' in a:
+                    return
+                print(e.args)
+                raise e
+
+        atheris.Setup(sys.argv, modified_game)
+        atheris.Fuzz()
+EOF
+chmod +x build/fuzz.py
+
+rm -f .coverage
+PYTHONPATH=. python3 -m coverage run build/fuzz.py -jobs=10 -atheris_runs=10_000
+
+coverage report --include game.py --fail-under=100 --skip-covered --show-missing
