@@ -3,3 +3,5 @@ __pycache__
 .mutmut-cache
 build
 fuzz*log
+crash*
+.hypothesis

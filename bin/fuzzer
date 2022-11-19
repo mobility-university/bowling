@@ -11,36 +11,27 @@ if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
     with atheris.instrument_imports():
         import game
 
-        def modified_game(bb):
-            #fdp = 
-            original = atheris.FuzzedDataProvider(bb).ConsumeUnicode(40)
-            original = atheris.FuzzedDataProvider(bb).ConsumeBytes(40).decode('ISO 8859-1')
-            #original = atheris.FuzzedDataProvider(bb).ConsumeString(40)
+        def modified_game(fuzzed):
+            input = atheris.FuzzedDataProvider(fuzzed).ConsumeBytes(40).decode('ISO 8859-1')
 
             try:
-                return game.evaluate_game(
-                    game=original
-                    #game=bb.decode('utf-8')
-                )
-            except UnicodeDecodeError:
-                assert False
+                assert 0 <= game.evaluate_game(game=input) <= 300
             except AssertionError as e:
-                a, *_ = e.args
-                if a in (
-                            'need to have 10 frames + bonus frame',
-                            'frame need to have length 2, if no strike or bonus frame',
-                            'spare cannot be the first throw in a frame',
-                            'cannot score 10 or higher, without strike/spare',
-                            'two strikes cannot be in the same frame, except in bonus frame',
-                            'bonus frame needs to be empty',
-                            'last throw cannot be a strike',
-                            'a strike in the last regular frame provides two bonus throws',
-                            'throw before last throw cannot be strike',
-                            ):
+                message, *_ = e.args
+                if message in (
+                        'a strike in the last regular frame provides two bonus throws',
+                        'bonus frame needs to be empty',
+                        'cannot score 10 or higher, without strike/spare',
+                        'frame need to have length 2, if no strike or bonus frame',
+                        'last throw cannot be a strike',
+                        'need to have 10 frames + bonus frame',
+                        'spare cannot be the first throw in a frame',
+                        'throw before last throw cannot be strike',
+                        'two strikes cannot be in the same frame, except in bonus frame',
+                        ):
                     return
-                if 'is an invalid throw' in a:
+                if 'is an invalid throw' in message:
                     return
-                print(e.args)
                 raise e
 
         atheris.Setup(sys.argv, modified_game)
