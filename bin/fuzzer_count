@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+import sys
+results = []
+for line in sys.stdin:
+    results.append(float(line))
+    print(f'#{len(results)}: {sum(results) / len(results):.2f}', file=sys.stderr)
+
+print(f'{sum(results) / len(results):.2f}')

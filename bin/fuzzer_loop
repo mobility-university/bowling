@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+do_tries() {
+    method=$1
+    runs=$2
+    for i in $(seq 1 100); do
+        ./bin/fuzzer_step_$method $runs &>/dev/null
+        coverage json --include game.py &> /dev/null && cat coverage.json | jq '.totals.percent_covered'
+    done
+}
+
+for amount in 1 100 1000 10000 50000 100000 200000 300000 400000 500000 1000000; do
+    for method in binary utf8 iso; do
+        echo -n "$method $amount: "
+        do_tries $method $amount | ./bin/fuzzer_count 2>/dev/null
+    done
+done

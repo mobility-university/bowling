@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+
+mkdir -p build && cat > build/fuzz.py << EOF
+#!/usr/bin/env python3
+import atheris
+import sys
+
+if __name__ == "__main__":
+    with atheris.instrument_imports():
+        import game
+
+        def modified_game(fuzzed):
+            input = atheris.FuzzedDataProvider(fuzzed).ConsumeBytes(40).decode('ISO 8859-1')
+
+            try:
+                assert 0 <= game.evaluate_game(game=input) <= 300
+            except:
+                return
+
+        atheris.Setup(sys.argv, modified_game)
+        atheris.Fuzz()
+EOF
+chmod +x build/fuzz.py
+
+rm -f .coverage
+PYTHONPATH=. python3 -m coverage run build/fuzz.py -atheris_runs=$* -max_len=40
+
+#coverage report --include game.py --fail-under=100 --skip-covered --show-missing
