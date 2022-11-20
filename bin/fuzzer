@@ -39,7 +39,7 @@ EOF
 chmod +x build/fuzz.py
 
 rm -f .coverage
-PYTHONPATH=. python3 -m coverage run build/fuzz.py -atheris_runs=10000000 -max_len=40
+PYTHONPATH=. python3 -m coverage run build/fuzz.py -atheris_runs=1000000 -max_len=40
 
 # for CI just require 90% coverage, cause fuzzing relies on random
 coverage report --include game.py --fail-under=90 --skip-covered --show-missing
