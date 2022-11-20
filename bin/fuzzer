@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+
+mkdir -p build && cat > build/fuzz.py << EOF
+#!/usr/bin/env python3
+import atheris
+import sys
+
+if __name__ == "__main__":
+    with atheris.instrument_imports():
+        import game
+
+        def modified_game(fuzzed):
+            input = atheris.FuzzedDataProvider(fuzzed).ConsumeBytes(40).decode('ISO 8859-1')
+
+            try:
+                assert 0 <= game.evaluate_game(game=input) <= 300
+            except AssertionError as e:
+                message, *_ = e.args
+                if message in (
+                        'a strike in the last regular frame provides two bonus throws',
+                        'bonus frame needs to be empty',
+                        'cannot score 10 or higher, without strike/spare',
+                        'frame need to have length 2, if no strike or bonus frame',
+                        'last throw cannot be a strike',
+                        'need to have 10 frames + bonus frame',
+                        'spare cannot be the first throw in a frame',
+                        'throw before last throw cannot be strike',
+                        'two strikes cannot be in the same frame, except in bonus frame',
+                        ):
+                    return
+                if 'is an invalid throw' in message:
+                    return
+                raise e
+
+        atheris.Setup(sys.argv, modified_game)
+        atheris.Fuzz()
+EOF
+chmod +x build/fuzz.py
+
+rm -f .coverage
+PYTHONPATH=. python3 -m coverage run build/fuzz.py -atheris_runs=1000000 -max_len=40
+
+# for CI just require 90% coverage, cause fuzzing relies on random
+coverage report --include game.py --fail-under=90 --skip-covered --show-missing
