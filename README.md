@@ -28,6 +28,16 @@ for throw_before_last_throw, last_throw, throw in iter_over_throws(
 
 As you see, in the code above, it is pretty readable how scoring is done. Taking the normal points and double points if throw before last throw was a strike or if the last throw was a strike/spare.
 
+## Testing
+
+Testing is done on multiple levels.
+
+First there is unittesting with 100% statement coverage.
+
+To ensure that all aspects of the code are covered with a test, there is also mutation testing in place. Strong mutation testing. This ensures that the functionallity is correct.
+
+To show that these tests cover everything, there is on top of this also a fuzzy testing in place. This shows that all (currently known) 54 branches are covered and that there is no unexpected behaviour.
+
 ## Execute it as docker
 
 ```sh
