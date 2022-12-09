@@ -218,4 +218,4 @@ if __name__ == "__main__":  # pragma: no mutate  # pragma: no cover
     from sys import stdin
 
     for line in stdin:
-        print(evaluate_game(line))
+        print(evaluate_game(line.rstrip("\n")))  # pragma: no mutate
